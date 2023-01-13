@@ -1,0 +1,19 @@
+"Games"
+{
+    "csgo"
+    {
+        "Offsets"
+        {
+            "CBaseCombatWeapon::GetMaxClip1"
+            {
+                "windows"   "353"
+                "linux"     "359"
+            }
+            "CBaseCombatWeapon::GetReserveAmmoMax"
+            {
+                "windows"   "357"
+                "linux"     "363"
+            }
+        }
+    }
+}

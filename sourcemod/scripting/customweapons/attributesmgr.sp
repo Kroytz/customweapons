@@ -6,9 +6,39 @@
 #error "Attemped to compile from the wrong file"
 #endif
 
-void AttributesMgrHooks()
+int DHook_GetMaxClip1;
+int DHook_GetReserveAmmoMax;
+
+Handle hDHookGetMaxClip;
+Handle hDHookGetReserveAmmoMax;
+
+void AttributesMgrHooks(GameData gd)
 {
 	HookEvent("weapon_fire", AttributesMgr_OnWeaponFire, EventHookMode_Pre);
+
+	DHook_GetMaxClip1 = gd.GetOffset("CBaseCombatWeapon::GetMaxClip1");
+	DHook_GetReserveAmmoMax = gd.GetOffset("CBaseCombatWeapon::GetReserveAmmoMax");
+
+	/// CBaseCombatWeapon::GetMaxClip1(CBaseCombatWeapon *this)
+	hDHookGetMaxClip = DHookCreate(DHook_GetMaxClip1, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, AttributesDHookOnGetMaxClip1);
+	
+	// Validate hook
+	if (hDHookGetMaxClip == null)
+	{
+		// Log failure
+		LogError("Failed to create DHook for \"CBaseCombatWeapon::GetMaxClip1\".");
+	}
+	
+	/// CBaseCombatWeapon::GetReserveAmmoMax(CBaseCombatWeapon *this, AmmoPosition_t)
+	hDHookGetReserveAmmoMax = DHookCreate(DHook_GetReserveAmmoMax, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, AttributesDHookOnGetReverseMax);
+	DHookAddParam(hDHookGetReserveAmmoMax, HookParamType_Unknown);
+	
+	// Validate hook
+	if (hDHookGetReserveAmmoMax == null)
+	{
+		// Log failure
+		LogError("Failed to create DHook for \"CBaseCombatWeapon::GetReserveAmmoMax\".");
+	}
 }
 
 Action AttributesMgr_OnPlayerRunCmd(int client, int &iButtons, int iLastButtons)
@@ -232,4 +262,52 @@ void AttributesSetWeaponDelay(int weapon, float flDelay)
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", flDelay);
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextSecondaryAttack", flDelay);
 	SetEntPropFloat(weapon, Prop_Send, "m_flTimeWeaponIdle", flDelay);
+}
+
+public MRESReturn AttributesDHookOnGetMaxClip1(int weapon, Handle hReturn)
+{
+	// Validate weapon
+	if (IsValidEdict(weapon))
+	{
+		// Try to retrieve and validate the weapon customization data.
+		// If it failed, that means that there are no customizations applied on this weapon.
+		CustomWeaponData custom_weapon_data;
+		if (custom_weapon_data.GetMyself(weapon))
+		{
+			// Gets weapon clip
+			int iClip = custom_weapon_data.primary_ammo;
+			if (iClip)
+			{
+				DHookSetReturn(hReturn, iClip);
+				return MRES_Override;
+			}
+		}
+	}
+
+	// Skip the hook
+	return MRES_Ignored;
+}
+
+public MRESReturn AttributesDHookOnGetReverseMax(int weapon, Handle hReturn, Handle hParams)
+{
+	// Validate weapon
+	if (IsValidEdict(weapon))
+	{
+		// Try to retrieve and validate the weapon customization data.
+		// If it failed, that means that there are no customizations applied on this weapon.
+		CustomWeaponData custom_weapon_data;
+		if (custom_weapon_data.GetMyself(weapon))
+		{
+			// Gets weapon ammo
+			int iAmmo = custom_weapon_data.reserved_ammo;
+			if (iAmmo)
+			{
+				DHookSetReturn(hReturn, iAmmo);
+				return MRES_Override;
+			}
+		}
+	}
+	
+	// Skip the hook
+	return MRES_Ignored;
 }

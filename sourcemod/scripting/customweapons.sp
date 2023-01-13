@@ -3,6 +3,7 @@
 #include <sdkhooks>
 #include <anymap>
 #include <customweapons>
+#include <dhooks>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -15,6 +16,8 @@
 #include "customweapons/modelsmgr.sp"
 #include "customweapons/soundsmgr.sp"
 #undef COMPILING_FROM_MAIN
+
+GameData g_gdGameData;
 
 // Used to call a lateload function in 'OnPluginStart()'
 bool g_Lateload;
@@ -47,13 +50,16 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
+	// Initialize gamedata
+	g_gdGameData = new GameData("custom_weapons.games");
+
 	// Initialize all global variables.
 	InitializeGlobalVariables();
 	
 	// Perform hooks that required for sub modules.
 	ModelsManagerHooks();
 	SoundsManagerHooks();
-	AttributesMgrHooks();
+	AttributesMgrHooks(g_gdGameData);
 	
 	// Late late function for secure measures.
 	if (g_Lateload)

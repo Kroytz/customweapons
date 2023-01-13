@@ -107,6 +107,9 @@ enum struct CustomWeaponData
     float deploy; // The duration of reload for a weapon.  ['0.0' = default | '-1.0' = instant]
     float speed;  // The delay between shoots of a weapon. ['0.0' = default | '-1.0' = instant]
     float reload; // The duration of deploy for a weapon.  ['0.0' = default | '-1.0' = instant]
+
+    int primary_ammo;
+    int reserved_ammo;
     
     //======================================//
     
